@@ -29,6 +29,13 @@ pip-delete-this-directory.txt
 # Pycharm project files
 .idea/
 
+# VS Code project files
+.vscode/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints
+
+
 # PyTest cache
 .pytest_cache/
 
