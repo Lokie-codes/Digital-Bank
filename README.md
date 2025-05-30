@@ -68,10 +68,17 @@ Create a `.env` file in each service’s root (or centrally) with:
 
 ```dotenv
 # Example for auth-service
-DJANGO_SECRET_KEY=your_secret_key_here
-DATABASE_URL=postgres://user:password@localhost:5432/auth_db
-REDIS_URL=redis://localhost:6379/0
-RABBITMQ_URL=amqp://guest:guest@localhost:5672/
+# User service DB
+USER_POSTGRES_DB=user_db
+USER_POSTGRES_USER=user_db_user
+USER_POSTGRES_PASSWORD=user_db_pass
+USER_POSTGRES_HOST=user_db
+USER_POSTGRES_PORT=5432
+
+# Common
+USE_POSTGRES=1
+DJANGO_SECRET_KEY=your_secret_key
+DEBUG=0
 ```
 Be sure to change values to your current configurations.
 

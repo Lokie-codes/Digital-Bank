@@ -84,12 +84,24 @@ WSGI_APPLICATION = 'user_core.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+if os.getenv("USE_POSTGRESQL", "False").lower() == "true":
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.environ.get('USER_POSTGRES_DB', 'user_db'),
+            'USER': os.environ.get('USER_POSTGRES_USER', 'user_db_user'),
+            'PASSWORD': os.environ.get('USER_POSTGRES_PASSWORD', 'user_db_pass'),
+            'HOST': os.environ.get('USER_POSTGRES_HOST', 'user_db'),
+            'PORT': os.environ.get('USER_POSTGRES_PORT', '5432'),
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (

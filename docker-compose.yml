@@ -1,0 +1,28 @@
+services:
+  user_db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: user_db
+      POSTGRES_USER: user_db_user
+      POSTGRES_PASSWORD: user_db_pass
+    volumes:
+      - user_postgres_data:/var/lib/postgresql/data
+
+  user_service:
+    build: ./user_service
+    container_name: user_service
+    image: user_service_image
+    command: gunicorn user_core.wsgi:application --bind 0.0.0.0:8000
+    volumes:
+      - .:/app
+    ports:
+      - "8001:8000"
+    env_file:
+      - .env
+    depends_on:
+      - user_db
+
+  # Add more services and their DBs as needed
+
+volumes:
+  user_postgres_data:
