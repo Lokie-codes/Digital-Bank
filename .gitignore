@@ -58,3 +58,6 @@ drf_example
 
 # Database files
 *.sqlite3
+
+# Migrations
+migrations/
