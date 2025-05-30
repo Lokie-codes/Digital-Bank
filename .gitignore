@@ -43,10 +43,11 @@ coverage.xml
 
 # VirtualEnv
 .venv/
+.venv_*
 
 # Developers
 *.sw*
-manage.py
+# manage.py
 .DS_Store
 
 # example database
