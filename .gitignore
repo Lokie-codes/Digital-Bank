@@ -62,3 +62,4 @@ drf_example
 
 # Migrations
 migrations/
+user_service/db.sqlite3
