@@ -55,3 +55,6 @@ drf_example
 
 # Environment variables
 .env
+
+# Database files
+*.sqlite3
