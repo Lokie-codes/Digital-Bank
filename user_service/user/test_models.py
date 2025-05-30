@@ -1,39 +1,92 @@
 import pytest
 from django.core.exceptions import ValidationError
-from django.db.utils import IntegrityError
 from django.contrib.auth import get_user_model
+from django.db.utils import IntegrityError
 
-CustomUser = get_user_model()
+User = get_user_model()
 
 @pytest.mark.django_db
-def test_create_user_success():
-    user = CustomUser.objects.create_user(
-        email="test@example.com",
-        password="securepassword123",
-        first_name="Test",
-        last_name="User"
-    )
-    assert user.email == "test@example.com"
-    assert user.check_password("securepassword123")
+def test_create_user_with_email_and_password():
+    user = User.objects.create_user(email='test@example.com', password='testpass123')
+    assert user.email == 'test@example.com'
+    assert user.check_password('testpass123')
     assert user.is_active
-    assert user.role == "user"
+    assert not user.is_staff
+    assert not user.is_superuser
 
 @pytest.mark.django_db
-def test_create_user_email_normalization():
-    user = CustomUser.objects.create_user(
-        email="Test@Example.COM",
-        password="password"
-    )
-    assert user.email == "Test@example.com"
+def test_create_user_without_email_raises_error():
+    with pytest.raises(ValueError):
+        User.objects.create_user(email=None, password='testpass123')
 
 @pytest.mark.django_db
-def test_create_user_without_email_raises_value_error():
-    with pytest.raises(ValueError) as excinfo:
-        CustomUser.objects.create_user(email=None, password="password")
-    assert "The Email field must be set" in str(excinfo.value)
+def test_create_superuser():
+    superuser = User.objects.create_superuser(email='admin@example.com', password='adminpass')
+    assert superuser.is_superuser
+    assert superuser.is_staff
+    assert superuser.is_active
 
 @pytest.mark.django_db
-def test_create_user_duplicate_email_raises_integrity_error():
-    CustomUser.objects.create_user(email="unique@example.com", password="password")
+def test_create_superuser_with_wrong_flags_raises_error():
+    with pytest.raises(ValueError):
+        User.objects.create_superuser(
+            email='admin2@example.com',
+            password='adminpass',
+            is_staff=False
+        )
+    with pytest.raises(ValueError):
+        User.objects.create_superuser(
+            email='admin3@example.com',
+            password='adminpass',
+            is_superuser=False
+        )
+
+@pytest.mark.django_db
+def test_email_is_unique():
+    User.objects.create_user(email='unique@example.com', password='pass')
     with pytest.raises(IntegrityError):
-        CustomUser.objects.create_user(email="unique@example.com", password="password2")
+        User.objects.create_user(email='unique@example.com', password='pass2')
+
+@pytest.mark.django_db
+def test_username_is_optional_and_unique():
+    user1 = User.objects.create_user(email='user1@example.com', password='pass', username='user1')
+    assert user1.username == 'user1'
+    user2 = User.objects.create_user(email='user2@example.com', password='pass')
+    assert user2.username == 'user2@example.com'  # fallback to email
+    with pytest.raises(IntegrityError):
+        User.objects.create_user(email='user3@example.com', password='pass', username='user1')
+
+@pytest.mark.django_db
+def test_get_full_name_and_short_name():
+    user = User.objects.create_user(
+        email='fullname@example.com',
+        password='pass',
+        first_name='John',
+        last_name='Doe'
+    )
+    assert user.get_full_name() == 'John Doe'
+    assert user.get_short_name() == 'John'
+
+@pytest.mark.django_db
+def test_str_returns_email():
+    user = User.objects.create_user(email='str@example.com', password='pass')
+    assert str(user) == 'str@example.com'
+
+@pytest.mark.django_db
+def test_role_field_and_properties():
+    user = User.objects.create_user(email='role@example.com', password='pass', role='manager')
+    assert user.role == 'manager'
+    assert not user.is_admin
+    assert not user.is_manager
+    assert not user.is_a_staff
+
+@pytest.mark.django_db
+def test_is_admin_property_for_superuser():
+    user = User.objects.create_superuser(email='adminprop@example.com', password='pass')
+    assert user.is_admin
+
+@pytest.mark.django_db
+def test_clean_sets_username_to_email_if_blank():
+    user = User(email='clean@example.com')
+    user.clean()
+    assert user.username == 'clean@example.com'

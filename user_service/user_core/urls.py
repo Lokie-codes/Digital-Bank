@@ -1,8 +1,8 @@
-# user_service/user_core/urls.py
 from django.contrib import admin
 from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/auth/', include('user.urls')), # All user service endpoints under /api/auth/
+    # Include your app's URLs under a common API prefix
+    path('api/', include('user.urls')), # Make sure 'user' matches your app name
 ]

@@ -9,11 +9,13 @@ class CustomUserManager(BaseUserManager):
     Custom user manager where email is the unique identifier
     for authentication instead of usernames.
     """
-    def create_user(self, email, password=None, **extra_fields):
+    def create_user(self, email, password=None, username=None, **extra_fields):
         if not email:
             raise ValueError(_('The Email field must be set'))
         email = self.normalize_email(email)
-        user = self.model(email=email, **extra_fields)
+        if not username:
+            username = email
+        user = self.model(email=email, username=username, **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
         return user
@@ -25,7 +27,7 @@ class CustomUserManager(BaseUserManager):
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
         extra_fields.setdefault('is_active', True)
-        extra_fields.setdefault('role', 'admin') # Set admin role for superusers
+        # Note: 'role' is not set here as it's not a permission source anymore
 
         if extra_fields.get('is_staff') is not True:
             raise ValueError(_('Superuser must have is_staff=True.'))
@@ -81,7 +83,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
     def clean(self):
         super().clean()
-        if not self.username:
+        if not self.username and self.email:
             self.username = self.email # Fallback username to email if not provided
 
     def get_full_name(self):
@@ -104,10 +106,12 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
     @property
     def is_admin(self):
-        "Is the user an admin member?"
-        return self.role == 'admin'
+        return self.is_superuser # Admins are now superusers by default or via specific group
 
     @property
     def is_manager(self):
-        "Is the user a manager member?"
-        return self.role == 'manager'
+        return self.groups.filter(name='Managers').exists()
+
+    @property
+    def is_a_staff(self): # Renamed to avoid conflict with inherited is_staff
+        return self.is_staff or self.groups.filter(name='Staff').exists()
