@@ -90,3 +90,30 @@ def test_clean_sets_username_to_email_if_blank():
     user = User(email='clean@example.com')
     user.clean()
     assert user.username == 'clean@example.com'
+
+@pytest.mark.django_db
+def test_create_user_sets_email_and_username():
+    user = User.objects.create_user(email='foo@bar.com', password='secret', username='foobar')
+    assert user.email == 'foo@bar.com'
+    assert user.username == 'foobar'
+    assert user.check_password('secret')
+
+@pytest.mark.django_db
+def test_create_user_username_defaults_to_email():
+    user = User.objects.create_user(email='baz@qux.com', password='secret')
+    assert user.username == 'baz@qux.com'
+
+@pytest.mark.django_db
+def test_create_user_raises_error_if_email_missing():
+    with pytest.raises(ValueError):
+        User.objects.create_user(email=None, password='secret')
+
+@pytest.mark.django_db
+def test_create_user_normalizes_email():
+    user = User.objects.create_user(email='Test@Example.COM', password='pass')
+    assert user.email == 'Test@example.com'
+
+@pytest.mark.django_db
+def test_create_user_sets_password_properly():
+    user = User.objects.create_user(email='pwtest@example.com', password='mypassword')
+    assert user.check_password('mypassword')

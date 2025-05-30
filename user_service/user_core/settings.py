@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     # Third-party apps
     'rest_framework',
     'rest_framework_simplejwt',
+    'drf_spectacular',
     # Local apps
     'user.apps.UserConfig',
 ]
@@ -94,6 +95,22 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'User Service API',
+    'DESCRIPTION': '''
+    This API provides comprehensive user management functionalities for your application.
+    It supports **user registration**, **authentication** using JWT (JSON Web Tokens),
+    and **role-based access control (RBAC)** to secure various endpoints.
+
+    This API is designed to be robust, secure, and flexible, catering to applications
+    requiring structured user hierarchies and permissions.
+    ''',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+    # OTHER SETTINGS
 }
 
 # Password validation

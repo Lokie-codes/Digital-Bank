@@ -7,6 +7,19 @@ from django.utils.translation import gettext_lazy as _
 # Get the CustomUser model using get_user_model()
 CustomUser = get_user_model()
 
+class GroupManagementSerializer(serializers.Serializer):
+    group_name = serializers.CharField(
+        max_length=150, 
+        required=True,
+        help_text=_("Name of the group (e.g., 'Managers', 'Staff', 'Users').")
+    )
+
+class StaffStatusSerializer(serializers.Serializer):
+    is_staff = serializers.BooleanField(
+        required=True,
+        help_text="Set to `true` to make the user staff, `false` otherwise."
+    )
+
 class CustomUserCreateSerializer(serializers.ModelSerializer):
     """
     Serializer for user registration.

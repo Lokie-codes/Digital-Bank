@@ -1,0 +1,969 @@
+openapi: 3.0.3
+info:
+  title: User Service API
+  version: 1.0.0
+  description: "\n    This API provides comprehensive user management functionalities\
+    \ for your application.\n    It supports **user registration**, **authentication**\
+    \ using JWT (JSON Web Tokens),\n    and **role-based access control (RBAC)** to\
+    \ secure various endpoints.\n\n    This API is designed to be robust, secure,\
+    \ and flexible, catering to applications\n    requiring structured user hierarchies\
+    \ and permissions.\n    "
+paths:
+  /api/auth/token/:
+    post:
+      operationId: auth_token_create
+      description: Authenticates a user and returns JWT access and refresh tokens.
+        Returns a generic "No active account found with the given credentials" for
+        security reasons if credentials are invalid or account is inactive (prevents
+        user enumeration).
+      summary: Obtain JWT Access and Refresh Tokens
+      tags:
+      - Authentication
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomTokenObtainPair'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CustomTokenObtainPair'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CustomTokenObtainPair'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomTokenObtainPair'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                description: No active account found with the given credentials
+          description: ''
+  /api/users/:
+    get:
+      operationId: users_list
+      description: Retrieves a list of users. Filtered based on requester's permissions.
+      summary: List Users
+      tags:
+      - User Management
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CustomUserList'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                description: Authentication credentials were not provided.
+          description: ''
+    post:
+      operationId: users_create
+      description: Allows anyone to create a new user account. Newly created users
+        are optionally added to the "Users" group.
+      summary: Register a New User
+      tags:
+      - User Management
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomUserCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CustomUserCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CustomUserCreate'
+        required: true
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomUserDetail'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                description: Bad Request - Validation Errors
+          description: ''
+  /api/users/{id}/:
+    get:
+      operationId: users_retrieve
+      description: Retrieves the details of a specific user by ID.
+      summary: Retrieve User Details
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this user.
+        required: true
+      - in: path
+        name: pk
+        schema:
+          type: integer
+        description: User ID
+        required: true
+      tags:
+      - User Management
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomUserDetail'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                description: Authentication credentials were not provided.
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                description: Permission Denied
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                description: Not Found
+          description: ''
+    put:
+      operationId: users_update
+      description: Updates all details of a specific user by ID.
+      summary: Update User Details (Full)
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this user.
+        required: true
+      - in: path
+        name: pk
+        schema:
+          type: integer
+        description: User ID
+        required: true
+      tags:
+      - User Management
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomUserDetail'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CustomUserDetail'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CustomUserDetail'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomUserDetail'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                description: Bad Request - Validation Errors
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                description: Authentication credentials were not provided.
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                description: Permission Denied
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                description: Not Found
+          description: ''
+    patch:
+      operationId: users_partial_update
+      description: Partially updates details of a specific user by ID.
+      summary: Update User Details (Partial)
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this user.
+        required: true
+      - in: path
+        name: pk
+        schema:
+          type: integer
+        description: User ID
+        required: true
+      tags:
+      - User Management
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedCustomUserDetail'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedCustomUserDetail'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedCustomUserDetail'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomUserDetail'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                description: Bad Request - Validation Errors
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                description: Authentication credentials were not provided.
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                description: Permission Denied
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                description: Not Found
+          description: ''
+    delete:
+      operationId: users_destroy
+      description: Deactivates a user account by setting `is_active` to `false`. Only
+        Admin/Superuser.
+      summary: Soft Delete User (Deactivate)
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this user.
+        required: true
+      - in: path
+        name: pk
+        schema:
+          type: integer
+        description: User ID to deactivate
+        required: true
+      tags:
+      - User Management
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          content:
+            application/json:
+              schema:
+                description: User deactivated successfully.
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                description: Bad Request - User already inactive or admin deactivating
+                  self.
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                description: Authentication credentials were not provided.
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                description: Permission Denied or Admin cannot deactivate themselves.
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                description: Not Found
+          description: ''
+  /api/users/{id}/activate/:
+    post:
+      operationId: users_activate_create
+      description: Activates a user account. Only Admin/Superuser.
+      summary: Activate User Account
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this user.
+        required: true
+      - in: path
+        name: pk
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Admin Actions
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomUserList'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CustomUserList'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CustomUserList'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+        '400':
+          description: No response body
+        '401':
+          description: No response body
+        '403':
+          description: No response body
+        '404':
+          description: No response body
+  /api/users/{id}/add-to-group/:
+    post:
+      operationId: users_add_to_group_create
+      description: Adds a user to a group. Only Admin/Superuser.
+      summary: Add User to Group
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this user.
+        required: true
+      - in: path
+        name: pk
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Admin Actions
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GroupManagement'
+            examples:
+              AddToStaff:
+                value:
+                  group_name: Staff
+                summary: Add to Staff
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/GroupManagement'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/GroupManagement'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+        '400':
+          description: No response body
+        '401':
+          description: No response body
+        '403':
+          description: No response body
+        '404':
+          description: No response body
+  /api/users/{id}/deactivate/:
+    post:
+      operationId: users_deactivate_create
+      description: Deactivates a user account (soft delete). Only Admin/Superuser.
+        Admin cannot deactivate self.
+      summary: Deactivate User Account
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this user.
+        required: true
+      - in: path
+        name: pk
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Admin Actions
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomUserList'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CustomUserList'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CustomUserList'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+        '400':
+          description: No response body
+        '401':
+          description: No response body
+        '403':
+          description: No response body
+        '404':
+          description: No response body
+  /api/users/{id}/remove-from-group/:
+    post:
+      operationId: users_remove_from_group_create
+      description: Removes a user from a group. Only Admin/Superuser.
+      summary: Remove User from Group
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this user.
+        required: true
+      - in: path
+        name: pk
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Admin Actions
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GroupManagement'
+            examples:
+              RemoveFromStaff:
+                value:
+                  group_name: Staff
+                summary: Remove from Staff
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/GroupManagement'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/GroupManagement'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+        '400':
+          description: No response body
+        '401':
+          description: No response body
+        '403':
+          description: No response body
+        '404':
+          description: No response body
+  /api/users/{id}/set-staff-status/:
+    patch:
+      operationId: users_set_staff_status_partial_update
+      description: Sets `is_staff` status. Only Admin/Superuser. Superuser cannot
+        remove own staff status.
+      summary: Set User Staff Status
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this user.
+        required: true
+      - in: path
+        name: pk
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Admin Actions
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedStaffStatus'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedStaffStatus'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedStaffStatus'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomUserDetail'
+          description: ''
+        '400':
+          description: No response body
+        '401':
+          description: No response body
+        '403':
+          description: No response body
+        '404':
+          description: No response body
+  /api/users/change-password/:
+    post:
+      operationId: users_change_password_create
+      description: Allows the currently authenticated user to change their password.
+      summary: Change My Password
+      tags:
+      - Self Management
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordChange'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PasswordChange'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PasswordChange'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                description: Password changed successfully.
+          description: ''
+        '400':
+          description: No response body
+        '401':
+          description: No response body
+  /api/users/me/:
+    get:
+      operationId: users_me_retrieve
+      description: Retrieves, updates (full), or partially updates the details of
+        the currently authenticated user.
+      summary: Manage My Profile
+      tags:
+      - Self Management
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomUserDetail'
+          description: ''
+        '400':
+          description: No response body
+        '401':
+          description: No response body
+    put:
+      operationId: users_me_update
+      description: Retrieves, updates (full), or partially updates the details of
+        the currently authenticated user.
+      summary: Manage My Profile
+      tags:
+      - Self Management
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomUserDetail'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CustomUserDetail'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CustomUserDetail'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomUserDetail'
+          description: ''
+        '400':
+          description: No response body
+        '401':
+          description: No response body
+    patch:
+      operationId: users_me_partial_update
+      description: Retrieves, updates (full), or partially updates the details of
+        the currently authenticated user.
+      summary: Manage My Profile
+      tags:
+      - Self Management
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedCustomUserDetail'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedCustomUserDetail'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedCustomUserDetail'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomUserDetail'
+          description: ''
+        '400':
+          description: No response body
+        '401':
+          description: No response body
+components:
+  schemas:
+    CustomTokenObtainPair:
+      type: object
+      description: Customizes the JWT token to include additional user claims.
+      properties:
+        email:
+          type: string
+          writeOnly: true
+        password:
+          type: string
+          writeOnly: true
+      required:
+      - email
+      - password
+    CustomUserCreate:
+      type: object
+      description: |-
+        Serializer for user registration.
+        Handles creation of new users, ensuring password hashing and
+        not returning the password in the response.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        username:
+          type: string
+          nullable: true
+          description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+            only.
+          maxLength: 150
+        email:
+          type: string
+          format: email
+          title: Email address
+          maxLength: 254
+        password:
+          type: string
+          writeOnly: true
+        password2:
+          type: string
+          writeOnly: true
+        first_name:
+          type: string
+          maxLength: 30
+        last_name:
+          type: string
+          maxLength: 30
+        role:
+          type: string
+          default: user
+          maxLength: 10
+      required:
+      - email
+      - id
+      - password
+      - password2
+    CustomUserDetail:
+      type: object
+      description: |-
+        Serializer for retrieving and updating individual user details.
+        Password updates are handled separately for security.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        username:
+          type: string
+          nullable: true
+          description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+            only.
+          maxLength: 150
+        email:
+          type: string
+          format: email
+          title: Email address
+          maxLength: 254
+        first_name:
+          type: string
+          maxLength: 30
+        last_name:
+          type: string
+          maxLength: 30
+        is_active:
+          type: boolean
+          readOnly: true
+          title: Active
+          description: Designates whether this user should be treated as active. Unselect
+            this instead of deleting accounts.
+        is_staff:
+          type: boolean
+          readOnly: true
+          title: Staff status
+          description: Designates whether the user can log into this admin site.
+        is_superuser:
+          type: boolean
+          readOnly: true
+          title: Superuser status
+          description: Designates that this user has all permissions without explicitly
+            assigning them.
+        date_joined:
+          type: string
+          format: date-time
+          readOnly: true
+        groups:
+          type: array
+          items:
+            type: string
+          readOnly: true
+        role:
+          $ref: '#/components/schemas/RoleEnum'
+      required:
+      - date_joined
+      - email
+      - groups
+      - id
+      - is_active
+      - is_staff
+      - is_superuser
+    CustomUserList:
+      type: object
+      description: |-
+        Serializer for listing multiple users.
+        Ensures sensitive fields like password are never exposed.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        username:
+          type: string
+          readOnly: true
+          nullable: true
+          description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+            only.
+        email:
+          type: string
+          format: email
+          readOnly: true
+          title: Email address
+        first_name:
+          type: string
+          readOnly: true
+        last_name:
+          type: string
+          readOnly: true
+        is_active:
+          type: boolean
+          readOnly: true
+          title: Active
+          description: Designates whether this user should be treated as active. Unselect
+            this instead of deleting accounts.
+        is_staff:
+          type: boolean
+          readOnly: true
+          title: Staff status
+          description: Designates whether the user can log into this admin site.
+        is_superuser:
+          type: boolean
+          readOnly: true
+          title: Superuser status
+          description: Designates that this user has all permissions without explicitly
+            assigning them.
+        groups:
+          type: array
+          items:
+            type: string
+          readOnly: true
+        role:
+          allOf:
+          - $ref: '#/components/schemas/RoleEnum'
+          readOnly: true
+      required:
+      - email
+      - first_name
+      - groups
+      - id
+      - is_active
+      - is_staff
+      - is_superuser
+      - last_name
+      - role
+      - username
+    GroupManagement:
+      type: object
+      properties:
+        group_name:
+          type: string
+          description: Name of the group (e.g., 'Managers', 'Staff', 'Users').
+          maxLength: 150
+      required:
+      - group_name
+    PasswordChange:
+      type: object
+      description: |-
+        Serializer for changing a user's password.
+        Requires old password for verification.
+      properties:
+        old_password:
+          type: string
+          writeOnly: true
+        new_password:
+          type: string
+          writeOnly: true
+        new_password2:
+          type: string
+          writeOnly: true
+      required:
+      - new_password
+      - new_password2
+      - old_password
+    PatchedCustomUserDetail:
+      type: object
+      description: |-
+        Serializer for retrieving and updating individual user details.
+        Password updates are handled separately for security.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        username:
+          type: string
+          nullable: true
+          description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+            only.
+          maxLength: 150
+        email:
+          type: string
+          format: email
+          title: Email address
+          maxLength: 254
+        first_name:
+          type: string
+          maxLength: 30
+        last_name:
+          type: string
+          maxLength: 30
+        is_active:
+          type: boolean
+          readOnly: true
+          title: Active
+          description: Designates whether this user should be treated as active. Unselect
+            this instead of deleting accounts.
+        is_staff:
+          type: boolean
+          readOnly: true
+          title: Staff status
+          description: Designates whether the user can log into this admin site.
+        is_superuser:
+          type: boolean
+          readOnly: true
+          title: Superuser status
+          description: Designates that this user has all permissions without explicitly
+            assigning them.
+        date_joined:
+          type: string
+          format: date-time
+          readOnly: true
+        groups:
+          type: array
+          items:
+            type: string
+          readOnly: true
+        role:
+          $ref: '#/components/schemas/RoleEnum'
+    PatchedStaffStatus:
+      type: object
+      properties:
+        is_staff:
+          type: boolean
+          description: Set to `true` to make the user staff, `false` otherwise.
+    RoleEnum:
+      enum:
+      - user
+      - staff
+      - manager
+      - admin
+      type: string
+      description: |-
+        * `user` - User
+        * `staff` - Staff
+        * `manager` - Manager
+        * `admin` - Admin
+  securitySchemes:
+    jwtAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
