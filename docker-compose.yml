@@ -7,23 +7,71 @@ services:
       POSTGRES_PASSWORD: user_db_pass
     volumes:
       - user_postgres_data:/var/lib/postgresql/data
+    networks:
+      - digital_bank_network
 
   user_service:
     build: ./user_service
     container_name: user_service
     image: user_service_image
-    command: gunicorn user_core.wsgi:application --bind 0.0.0.0:8000
-    entrypoint: ["/app/user_service/entrypoint.sh"]
+    entrypoint: 
+      - "/app/user_service/entrypoint.sh"
+    command: >
+      gunicorn user_core.wsgi:application 
+      --bind 0.0.0.0:8000
     volumes:
       - .:/app
     ports:
       - "8001:8000"
     env_file:
       - .env
+    environment:
+      - USE_POSTGRESQL=True
     depends_on:
       - user_db
+    networks:
+      - digital_bank_network
 
-  # Add more services and their DBs as needed
+  account_db:
+    image: postgres:15
+    container_name: account_db
+    environment:
+      POSTGRES_DB: account_db
+      POSTGRES_USER: account_db_user
+      POSTGRES_PASSWORD: account_db_pass
+    volumes:
+      - account_postgres_data:/var/lib/postgresql/data
+    networks:
+      - digital_bank_network
+
+  account_service:
+    build: ./account_service
+    container_name: account_service
+    image: account_service_image
+    entrypoint:
+      - "/app/account_service/entrypoint.sh"
+    command: >
+      gunicorn accounts_core.wsgi:application 
+      --bind 0.0.0.0:8000
+    volumes:
+      - .:/app
+    ports:
+      - "8002:8000"
+    env_file:
+      - .env
+    environment:
+      - USE_POSTGRESQL=True
+    depends_on:
+      - account_db
+    networks:
+      - digital_bank_network
+
+networks:
+  digital_bank_network:
+    driver: bridge
 
 volumes:
   user_postgres_data:
+    driver: local
+  account_postgres_data:
+    driver: local

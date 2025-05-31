@@ -69,8 +69,6 @@ drf_example
 
 # Migrations
 migrations/
-user_service/db.sqlite3
-
 
 # static files
 staticfiles/
@@ -78,3 +76,4 @@ staticfiles/
 media/
 # Django specific
 *.log
+user_service/db.sqlite3
