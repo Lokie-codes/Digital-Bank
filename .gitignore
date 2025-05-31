@@ -70,3 +70,11 @@ drf_example
 # Migrations
 migrations/
 user_service/db.sqlite3
+
+
+# static files
+staticfiles/
+# media files
+media/
+# Django specific
+*.log

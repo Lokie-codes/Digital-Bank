@@ -83,7 +83,6 @@ WSGI_APPLICATION = 'user_core.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
-
 if os.getenv("USE_POSTGRESQL", "False").lower() == "true":
     DATABASES = {
         'default': {
@@ -114,8 +113,8 @@ SPECTACULAR_SETTINGS = {
     'TITLE': 'User Service API',
     'DESCRIPTION': '''
     This API provides comprehensive user management functionalities for your application.
-    It supports **user registration**, **authentication** using JWT (JSON Web Tokens),
-    and **role-based access control (RBAC)** to secure various endpoints.
+    It supports user registration, authentication using JWT (JSON Web Tokens),
+    and role-based access control (RBAC) to secure various endpoints.
 
     This API is designed to be robust, secure, and flexible, catering to applications
     requiring structured user hierarchies and permissions.
@@ -151,6 +150,81 @@ SIMPLE_JWT = {
     'BLACKLIST_AFTER_ROTATION': True,
 }
 
+# Logging configuration
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname} {asctime} {name}: {message}', # Added {name} to see which logger is outputting
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple',
+        },
+        'file': {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs', 'django.log'), # Ensure 'logs' directory exists
+            'maxBytes': 1024*1024*5, # 5 MB
+            'backupCount': 5,
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'users.views': { # This matches the name of your logger in views.py
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG', # Set to DEBUG to see all your debug logs
+            'propagate': False,
+        },
+        'users.models': { # This matches the name of your logger in models.py
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG', # Set to DEBUG to see all your debug logs
+            'propagate': False,
+        },
+        'users.serializers': { # This matches the name of your logger in serializers.py
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG', # Set to DEBUG to see all your debug logs
+            'propagate': False,
+        },
+        'users.permissions': { # This matches the name of your logger in permissions.py
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG', # Set to DEBUG to see all your debug logs
+            'propagate': False,
+        },
+        'users.authentication': { # This matches the name of your logger in authentication.py
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG', # Set to DEBUG to see all your debug logs
+            'propagate': False,
+        },
+        'users.management.commands': { # This matches the name of your logger in management/commands
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG', # Set to DEBUG to see all your debug logs
+            'propagate': False,
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'WARNING', # Default for everything else
+    }
+}
+
+# Create the logs directory if it doesn't exist
+LOGS_DIR = os.path.join(BASE_DIR, 'logs')
+if not os.path.exists(LOGS_DIR):
+    os.makedirs(LOGS_DIR)
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
@@ -168,7 +242,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = 'static/'
-
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 

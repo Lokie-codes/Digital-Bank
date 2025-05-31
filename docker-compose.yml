@@ -13,6 +13,7 @@ services:
     container_name: user_service
     image: user_service_image
     command: gunicorn user_core.wsgi:application --bind 0.0.0.0:8000
+    entrypoint: ["/app/user_service/entrypoint.sh"]
     volumes:
       - .:/app
     ports:
